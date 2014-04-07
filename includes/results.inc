@@ -898,6 +898,17 @@ class IslandoraSolrFacets {
   public function renderText($results) {
     $facet_field = $this->facet_field;
     $islandora_solr_query = self::$islandoraSolrQuery;
+    //devin - updated date facets to sort by year.
+    if (strpos($results[0]["filter"], "mods.dateIssued") !== false) {
+      $results_sorted = array();
+      foreach($results as $key => $row) {
+        $results_sorted[$key] = $row['bucket'];
+        }
+      $results_sorted = array_map('strtolower', $results_sorted);
+      array_multisort($results_sorted, SORT_DESC, $results);
+    }
+    //devin
+
     $soft_limit = self::$soft_limit;
     $buckets = array();
     foreach ($results as $key => $values) {
