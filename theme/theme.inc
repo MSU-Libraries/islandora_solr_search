@@ -66,7 +66,10 @@ function islandora_solr_preprocess_islandora_solr(&$variables) {
   foreach ($results as $key => $result) {
     // Thumbnail.
     $path = url($result['thumbnail_url'], array('query' => $result['thumbnail_url_params']));
-    $altTitle =  $result['object_label'] ;
+    $altTitle = "";
+    if (array_key_exists('object_label',$result)) {
+        $altTitle =  $result['object_label'];
+    }
     $image = theme('image', array('path' => $path, 'alt' => $altTitle));
 
     $options = array('html' => TRUE);
