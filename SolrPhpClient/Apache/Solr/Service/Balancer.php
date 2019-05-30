@@ -1,46 +1,44 @@
 <?php
-// @codingStandardsIgnoreStart
-// XXX: This is an included library... Shouldn't change.
 /**
- * Copyright (c) 2007-2009, Conduit Internet Technologies, Inc.
- * All rights reserved.
+ * Copyright (c) 2007-2013, PTC Inc.
+ * All rights reserved. 
+ * 
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions are met: 
+ * 
+ *  - Redistributions of source code must retain the above copyright notice, 
+ *    this list of conditions and the following disclaimer. 
+ *  - Redistributions in binary form must reproduce the above copyright 
+ *    notice, this list of conditions and the following disclaimer in the 
+ *    documentation and/or other materials provided with the distribution. 
+ *  - Neither the name of PTC Inc. nor the names of its contributors may be
+ *    used to endorse or promote products derived from this software without
+ *    specific prior written permission. 
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE. 
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *  - Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *  - Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *  - Neither the name of Conduit Internet Technologies, Inc. nor the names of
- *    its contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @copyright Copyright 2007-2009 Conduit Internet Technologies, Inc. (http://conduit-it.com)
- * @license New BSD (http://solr-php-client.googlecode.com/svn/trunk/COPYING)
- * @version $Id: Balancer.php 15 2009-08-04 17:53:08Z donovan.jimenez $
+ * @copyright Copyright 2007-2013 PTC Inc. (http://ptc.com)
+ * @license https://raw.github.com/PTCInc/solr-php-client/master/COPYING 3-Clause BSD
  *
  * @package Apache
  * @subpackage Solr
- * @author Donovan Jimenez <djimenez@conduit-it.com>, Dan Wolfe
+ * @author Donovan Jimenez, Dan Wolfe
  */
 
 // See Issue #1 (http://code.google.com/p/solr-php-client/issues/detail?id=1)
 // Doesn't follow typical include path conventions, but is more convenient for users
 require_once(dirname(dirname(__FILE__)) . '/Service.php');
+require_once(dirname(dirname(__FILE__)) . '/NoServiceAvailableException.php');
 
 /**
  * Reference Implementation for using multiple Solr services in a distribution. Functionality
@@ -53,12 +51,17 @@ class Apache_Solr_Service_Balancer
 	/**
 	 * SVN Revision meta data for this class
 	 */
-	const SVN_REVISION = '$Revision: 15 $';
+	const SVN_REVISION = '$Revision$';
 
 	/**
 	 * SVN ID meta data for this class
 	 */
-	const SVN_ID = '$Id: Balancer.php 15 2009-08-04 17:53:08Z donovan.jimenez $';
+	const SVN_ID = '$Id$';
+
+	/**
+	 * SVN HeadURL meta data for this class
+	 */
+	const SVN_URL = '$HeadURL$';
 
 	protected $_createDocuments = true;
 
@@ -167,7 +170,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @param mixed $service
 	 *
-	 * @throws Exception If service descriptor is not valid
+	 * @throws Apache_Solr_InvalidArgumentException If service descriptor is not valid
 	 */
 	public function addReadService($service)
 	{
@@ -187,7 +190,7 @@ class Apache_Solr_Service_Balancer
 			}
 			else
 			{
-				throw new Exception('A Readable Service description array does not have all required elements of host, port, and path');
+				throw new Apache_Solr_InvalidArgumentException('A Readable Service description array does not have all required elements of host, port, and path');
 			}
 		}
 	}
@@ -197,7 +200,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @param mixed $service
 	 *
-	 * @throws Exception If service descriptor is not valid
+	 * @throws Apache_Solr_InvalidArgumentException If service descriptor is not valid
 	 */
 	public function removeReadService($service)
 	{
@@ -215,7 +218,7 @@ class Apache_Solr_Service_Balancer
 			}
 			else
 			{
-				throw new Exception('A Readable Service description array does not have all required elements of host, port, and path');
+				throw new Apache_Solr_InvalidArgumentException('A Readable Service description array does not have all required elements of host, port, and path');
 			}
 		}
 		else if (is_string($service))
@@ -235,7 +238,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @param mixed $service
 	 *
-	 * @throws Exception If service descriptor is not valid
+	 * @throws Apache_Solr_InvalidArgumentException If service descriptor is not valid
 	 */
 	public function addWriteService($service)
 	{
@@ -255,7 +258,7 @@ class Apache_Solr_Service_Balancer
 			}
 			else
 			{
-				throw new Exception('A Writeable Service description array does not have all required elements of host, port, and path');
+				throw new Apache_Solr_InvalidArgumentException('A Writeable Service description array does not have all required elements of host, port, and path');
 			}
 		}
 	}
@@ -265,7 +268,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @param mixed $service
 	 *
-	 * @throws Exception If service descriptor is not valid
+	 * @throws Apache_Solr_InvalidArgumentException If service descriptor is not valid
 	 */
 	public function removeWriteService($service)
 	{
@@ -283,7 +286,7 @@ class Apache_Solr_Service_Balancer
 			}
 			else
 			{
-				throw new Exception('A Readable Service description array does not have all required elements of host, port, and path');
+				throw new Apache_Solr_InvalidArgumentException('A Readable Service description array does not have all required elements of host, port, and path');
 			}
 		}
 		else if (is_string($service))
@@ -303,7 +306,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @return Apache_Solr_Service
 	 *
-	 * @throws Exception If there are no read services that meet requirements
+	 * @throws Apache_Solr_NoServiceAvailableException If there are no read services that meet requirements
 	 */
 	protected function _selectReadService($forceSelect = false)
 	{
@@ -338,7 +341,7 @@ class Apache_Solr_Service_Balancer
 			}
 			else
 			{
-				throw new Exception('No read services were available');
+				throw new Apache_Solr_NoServiceAvailableException('No read services were available');
 			}
 		}
 
@@ -351,7 +354,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @return Apache_Solr_Service
 	 *
-	 * @throws Exception If there are no write services that meet requirements
+	 * @throws Apache_Solr_NoServiceAvailableException If there are no write services that meet requirements
 	 */
 	protected function _selectWriteService($forceSelect = false)
 	{
@@ -390,7 +393,7 @@ class Apache_Solr_Service_Balancer
 			}
 			else
 			{
-				throw new Exception('No write services were available');
+				throw new Apache_Solr_NoServiceAvailableException('No write services were available');
 			}
 		}
 
@@ -406,7 +409,7 @@ class Apache_Solr_Service_Balancer
 	 *
 	 * @return Apache_Solr_Service
 	 *
-	 * @throws Exception If there are no write services that meet requirements
+	 * @throws Apache_Solr_NoServiceAvailableException If there are no write services that meet requirements
 	 */
 
 	protected function _selectWriteServiceSafe($forceSelect = false)
@@ -437,24 +440,31 @@ class Apache_Solr_Service_Balancer
 
 					if($backoff > $this->_backoffLimit)
 					{
-						throw new Exception('No write services were available.  All timeouts exceeded.');
+						throw new Apache_Solr_NoServiceAvailableException('No write services were available.  All timeouts exceeded.');
 					}
 
 				} while($this->_writeableServices[$this->_currentWriteService]->ping($backoff) === false);
 			}
 			else
 			{
-				throw new Exception('No write services were available');
+				throw new Apache_Solr_NoServiceAvailableException('No write services were available');
 			}
 		}
 
 		return $this->_writeableServices[$this->_currentWriteService];
 	}
 
+	/**
+	 * Set the create documents flag. This determines whether {@link Apache_Solr_Response} objects will
+	 * parse the response and create {@link Apache_Solr_Document} instances in place.
+	 *
+	 * @param boolean $createDocuments
+	 */
 	public function setCreateDocuments($createDocuments)
 	{
 		$this->_createDocuments = (bool) $createDocuments;
 
+		// set on current read service
 		if ($this->_currentReadService)
 		{
 			$service = $this->_selectReadService();
@@ -462,11 +472,16 @@ class Apache_Solr_Service_Balancer
 		}
 	}
 
+	/**
+	 * Get the current state of teh create documents flag.
+	 *
+	 * @return boolean
+	 */
 	public function getCreateDocuments()
 	{
 		return $this->_createDocuments;
 	}
-
+	
 	/**
 	 * Raw Add Method. Takes a raw post body and sends it to the update service.  Post body
 	 * should be a complete and well formed "add" xml document.
@@ -474,7 +489,7 @@ class Apache_Solr_Service_Balancer
 	 * @param string $rawPost
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
 	public function add($rawPost)
 	{
@@ -486,7 +501,7 @@ class Apache_Solr_Service_Balancer
 			{
 				return $service->add($rawPost);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -509,7 +524,7 @@ class Apache_Solr_Service_Balancer
 	 * @param boolean $overwriteCommitted
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
 	public function addDocument(Apache_Solr_Document $document, $allowDups = false, $overwritePending = true, $overwriteCommitted = true)
 	{
@@ -521,7 +536,7 @@ class Apache_Solr_Service_Balancer
 			{
 				return $service->addDocument($document, $allowDups, $overwritePending, $overwriteCommitted);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -544,7 +559,7 @@ class Apache_Solr_Service_Balancer
 	 * @param boolean $overwriteCommitted
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
 	public function addDocuments($documents, $allowDups = false, $overwritePending = true, $overwriteCommitted = true)
 	{
@@ -556,7 +571,7 @@ class Apache_Solr_Service_Balancer
 			{
 				return $service->addDocuments($documents, $allowDups, $overwritePending, $overwriteCommitted);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -578,7 +593,7 @@ class Apache_Solr_Service_Balancer
 	 * @param boolean $waitSearcher
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
 	public function commit($optimize = true, $waitFlush = true, $waitSearcher = true, $timeout = 3600)
 	{
@@ -590,7 +605,7 @@ class Apache_Solr_Service_Balancer
 			{
 				return $service->commit($optimize, $waitFlush, $waitSearcher, $timeout);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -609,11 +624,12 @@ class Apache_Solr_Service_Balancer
 	 * a complete and well formed "delete" xml document
 	 *
 	 * @param string $rawPost
+	 * @param float $timeout Maximum expected duration of the delete operation on the server (otherwise, will throw a communication exception)
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
-	public function delete($rawPost)
+	public function delete($rawPost, $timeout = 3600)
 	{
 		$service = $this->_selectWriteService();
 
@@ -621,9 +637,9 @@ class Apache_Solr_Service_Balancer
 		{
 			try
 			{
-				return $service->delete($rawPost);
+				return $service->delete($rawPost, $timeout);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -643,11 +659,12 @@ class Apache_Solr_Service_Balancer
 	 * @param string $id
 	 * @param boolean $fromPending
 	 * @param boolean $fromCommitted
+	 * @param float $timeout Maximum expected duration of the delete operation on the server (otherwise, will throw a communication exception)
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
-	public function deleteById($id, $fromPending = true, $fromCommitted = true)
+	public function deleteById($id, $fromPending = true, $fromCommitted = true, $timeout = 3600)
 	{
 		$service = $this->_selectWriteService();
 
@@ -655,9 +672,44 @@ class Apache_Solr_Service_Balancer
 		{
 			try
 			{
-				return $service->deleteById($id, $fromPending, $fromCommitted);
+				return $service->deleteById($id, $fromPending, $fromCommitted, $timeout);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
+			{
+				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
+				{
+					throw $e;
+				}
+			}
+
+			$service = $this->_selectWriteService(true);
+		} while ($service);
+
+		return false;
+	}
+
+	/**
+	 * Create and post a delete document based on multiple document IDs.
+	 *
+	 * @param array $ids Expected to be utf-8 encoded strings
+	 * @param boolean $fromPending
+	 * @param boolean $fromCommitted
+	 * @param float $timeout Maximum expected duration of the delete operation on the server (otherwise, will throw a communication exception)
+	 * @return Apache_Solr_Response
+	 *
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
+	 */
+	public function deleteByMultipleIds($ids, $fromPending = true, $fromCommitted = true, $timeout = 3600)
+	{
+		$service = $this->_selectWriteService();
+
+		do
+		{
+			try
+			{
+				return $service->deleteByMultipleId($ids, $fromPending, $fromCommitted, $timeout);
+			}
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -677,11 +729,12 @@ class Apache_Solr_Service_Balancer
 	 * @param string $rawQuery
 	 * @param boolean $fromPending
 	 * @param boolean $fromCommitted
+	 * @param float $timeout Maximum expected duration of the delete operation on the server (otherwise, will throw a communication exception)
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
-	public function deleteByQuery($rawQuery, $fromPending = true, $fromCommitted = true)
+	public function deleteByQuery($rawQuery, $fromPending = true, $fromCommitted = true, $timeout = 3600)
 	{
 		$service = $this->_selectWriteService();
 
@@ -689,9 +742,9 @@ class Apache_Solr_Service_Balancer
 		{
 			try
 			{
-				return $service->deleteByQuery($rawQuery, $fromPending, $fromCommitted);
+				return $service->deleteByQuery($rawQuery, $fromPending, $fromCommitted, $timeout);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -704,18 +757,26 @@ class Apache_Solr_Service_Balancer
 
 		return false;
 	}
-
+	
 	/**
-	 * Send an optimize command.  Will be synchronous unless both wait parameters are set
-	 * to false.
+	 * Use Solr Cell to extract document contents. See {@link http://wiki.apache.org/solr/ExtractingRequestHandler} for information on how
+	 * to use Solr Cell and what parameters are available.
 	 *
-	 * @param boolean $waitFlush
-	 * @param boolean $waitSearcher
+	 * NOTE: when passing an Apache_Solr_Document instance, field names and boosts will automatically be prepended by "literal." and "boost."
+	 * as appropriate. Any keys from the $params array will NOT be treated this way. Any mappings from the document will overwrite key / value
+	 * pairs in the params array if they have the same name (e.g. you pass a "literal.id" key and value in your $params array but you also
+	 * pass in a document isntance with an "id" field" - the document's value(s) will take precedence).
+	 *
+	 * @param string $file Path to file to extract data from
+	 * @param array $params optional array of key value pairs that will be sent with the post (see Solr Cell documentation)
+	 * @param Apache_Solr_Document $document optional document that will be used to generate post parameters (literal.* and boost.* params)
+	 * @param string $mimetype optional mimetype specification (for the file being extracted)
+	 *
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_InvalidArgumentException if $file, $params, or $document are invalid.
 	 */
-	public function optimize($waitFlush = true, $waitSearcher = true)
+	public function extract($file, $params = array(), $document = null, $mimetype = 'application/octet-stream')
 	{
 		$service = $this->_selectWriteService();
 
@@ -723,9 +784,88 @@ class Apache_Solr_Service_Balancer
 		{
 			try
 			{
-				return $service->optimize($waitFlush, $waitSearcher);
+				return $service->extract($file, $params, $document, $mimetype);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
+			{
+				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
+				{
+					throw $e;
+				}
+			}
+
+			$service = $this->_selectWriteService(true);
+		} while ($service);
+
+		return false;
+	}
+	
+	/**
+	 * Use Solr Cell to extract document contents. See {@link http://wiki.apache.org/solr/ExtractingRequestHandler} for information on how
+	 * to use Solr Cell and what parameters are available.
+	 *
+	 * NOTE: when passing an Apache_Solr_Document instance, field names and boosts will automatically be prepended by "literal." and "boost."
+	 * as appropriate. Any keys from the $params array will NOT be treated this way. Any mappings from the document will overwrite key / value
+	 * pairs in the params array if they have the same name (e.g. you pass a "literal.id" key and value in your $params array but you also
+	 * pass in a document isntance with an "id" field" - the document's value(s) will take precedence).
+	 *
+	 * @param string $data Data that will be passed to Solr Cell
+	 * @param array $params optional array of key value pairs that will be sent with the post (see Solr Cell documentation)
+	 * @param Apache_Solr_Document $document optional document that will be used to generate post parameters (literal.* and boost.* params)
+	 * @param string $mimetype optional mimetype specification (for the file being extracted)
+	 *
+	 * @return Apache_Solr_Response
+	 *
+	 * @throws Apache_Solr_InvalidArgumentException if $file, $params, or $document are invalid.
+	 *
+	 * @todo Should be using multipart/form-data to post parameter values, but I could not get my implementation to work. Needs revisisted.
+	 */
+	public function extractFromString($data, $params = array(), $document = null, $mimetype = 'application/octet-stream')
+	{
+		$service = $this->_selectWriteService();
+
+		do
+		{
+			try
+			{
+				return $service->extractFromString($data, $params, $document, $mimetype);
+			}
+			catch (Apache_Solr_HttpTransportException $e)
+			{
+				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
+				{
+					throw $e;
+				}
+			}
+
+			$service = $this->_selectWriteService(true);
+		} while ($service);
+
+		return false;
+	}
+	
+	/**
+	 * Send an optimize command.  Will be synchronous unless both wait parameters are set
+	 * to false.
+	 *
+	 * @param boolean $waitFlush
+	 * @param boolean $waitSearcher
+	 * @param float $timeout Maximum expected duration of the optimize operation on the server (otherwise, will throw a communication exception)
+	 * @return Apache_Solr_Response
+	 *
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
+	 */
+	public function optimize($waitFlush = true, $waitSearcher = true, $timeout = 3600)
+	{
+		$service = $this->_selectWriteService();
+
+		do
+		{
+			try
+			{
+				return $service->optimize($waitFlush, $waitSearcher, $timeout);
+			}
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -746,11 +886,12 @@ class Apache_Solr_Service_Balancer
 	 * @param int $offset The starting offset for result documents
 	 * @param int $limit The maximum number of result documents to return
 	 * @param array $params key / value pairs for query parameters, use arrays for multivalued parameters
+	 * @param string $method The HTTP method (Apache_Solr_Service::METHOD_GET or Apache_Solr_Service::METHOD::POST)
 	 * @return Apache_Solr_Response
 	 *
-	 * @throws Exception If an error occurs during the service call
+	 * @throws Apache_Solr_HttpTransportException If an error occurs during the service call
 	 */
-	public function search($query, $offset = 0, $limit = 10, $params = array())
+	public function search($query, $offset = 0, $limit = 10, $params = array(), $method = Apache_Solr_Service::METHOD_GET)
 	{
 		$service = $this->_selectReadService();
 
@@ -758,9 +899,9 @@ class Apache_Solr_Service_Balancer
 		{
 			try
 			{
-				return $service->search($query, $offset, $limit, $params);
+				return $service->search($query, $offset, $limit, $params, $method);
 			}
-			catch (Exception $e)
+			catch (Apache_Solr_HttpTransportException $e)
 			{
 				if ($e->getCode() != 0) //IF NOT COMMUNICATION ERROR
 				{
@@ -774,4 +915,3 @@ class Apache_Solr_Service_Balancer
 		return false;
 	}
 }
-// @codingStandardsIgnoreEnd
