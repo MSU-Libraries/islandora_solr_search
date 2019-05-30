@@ -29,14 +29,16 @@ function islandora_solr_ping($solr_url) {
     return FALSE;
   }
   // Call Solr.
-  $solr_service = new Apache_Solr_Service($solr_url_parsed['host'], $solr_url_parsed['port'], $solr_url_parsed['path'] . '/');
+  $solr_service = new Apache_Solr_Service($solr_url_parsed['host'], $solr_url_parsed['port'], $solr_url_parsed['path'] . '/', FALSE, $solr_url_parsed['scheme']);
   // Ping Solr.
+
   $ping = $solr_service->ping();
   // If a ping time is returned.
   if ($ping) {
     // Add 0.1 ms to the ping time so we never return 0.0.
     return $ping + 0.01;
   }
+
   return FALSE;
 }
 
@@ -47,12 +49,12 @@ function islandora_solr_ping($solr_url) {
  *   A URL to check.
  *
  * @return string
- *   If the url doesn't include a scheme ('http://') then it will
+ *   If the url doesn't include a scheme (e.g. 'http://') then it will
  *   include the url with added 'http://' scheme.
  */
 function islandora_solr_check_http($url) {
-  // Check for 'http://' prefix - if not found, add "http://".
-  if (strpos($url, "http://") === FALSE) {
+  // Check for protocol prefix - if not found, add "http://".
+  if (strpos($url, "://") === FALSE) {
     $url = 'http://' . $url;
   }
   return $url;
@@ -189,6 +191,26 @@ function islandora_solr_check_sortable($solr_url = NULL, $field = NULL) {
     }
   }
   return $sortable;
+}
+
+function islandora_solr_check_is_range($solr_url = NULL) {
+    $range_types = array(
+      'org.apache.solr.schema.DatePointField',
+      'org.apache.solr.schema.DateRangeField',
+    );
+    $datatype = NULL;
+    $luke = islandora_solr_get_luke($solr_url, NULL, 0, TRUE);
+    // Check if fields are available.
+    if (isset($luke['schema']['types']['date']['className'])) {
+       $datatype = $luke['schema']['types']['date']['className'];
+    }
+    if (in_array($datatype, $range_types)) {
+        return True;
+    } else {
+        return False;
+    }
+  return False;
+
 }
 
 /**

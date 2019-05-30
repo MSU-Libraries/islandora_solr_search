@@ -224,62 +224,27 @@ class IslandoraSolrQueryProcessor {
     }
 
     // Check for date facets.
-    $facet_dates_ranges = islandora_solr_get_range_facets();
-    if (!empty($facet_dates_ranges)) {
+    $facet_dates = islandora_solr_get_range_facets();
+    $facet_type = islandora_solr_check_is_range() ? 'range' : 'date';
+    if (!empty($facet_dates)) {
       // Set range/date variables.
       $params_date_facets = array();
-      $facet_dates = array_filter($facet_dates_ranges, function($o) {
-        return islandora_solr_is_date_field($o['solr_field']);
-      });
-      foreach ($facet_dates_ranges as $key => $value) {
+      foreach ($facet_dates as $key => $value) {
         $field = $value['solr_field'];
         $start = $value['solr_field_settings']['range_facet_start'];
         $end = $value['solr_field_settings']['range_facet_end'];
         $gap = $value['solr_field_settings']['range_facet_gap'];
-        if ($this->solrHasDateFacets()) {
-          // < Solr 6 or we don't know.
-          $params_date_facets["facet.date"][] = $field;
-          $params_date_facets["f.{$field}.facet.date.start"] = $start;
-          // Custom field settings.
-          if ($start) {
-            $params_date_facets["f.{$field}.facet.date.start"] = $start;
-          }
-          if ($end) {
-            $params_date_facets["f.{$field}.facet.date.end"] = $end;
-          }
-          if ($gap) {
-            $params_date_facets["f.{$field}.facet.date.gap"] = $gap;
-          }
-          // Default settings.
-          $params_date_facets["facet.date.start"] = 'NOW/YEAR-20YEARS';
-          $params_date_facets["facet.date.end"] = 'NOW';
-          $params_date_facets["facet.date.gap"] = '+1YEAR';
+        // Add date facet.
+        $params_date_facets["facet.{$facet_type}"][] = $field;
+        // Custom field settings.
+        if ($start) {
+          $params_date_facets["f.{$field}.facet.{$facet_type}.start"] = $start;
         }
-        else {
-          // No more date facets.
-          $params_date_facets["facet.range"][] = $field;
-          if (in_array($field, $facet_dates)) {
-            // Use date defaults for date solr fields.
-            // TODO: Maybe these should be removed and left to the config form.
-            if (!$start) {
-              $start = 'NOW/YEAR-20YEARS';
-            }
-            if (!$end) {
-              $end = 'NOW';
-            }
-            if (!$gap) {
-              $gap = '+1YEAR';
-            }
-          }
-          if ($start) {
-            $params_date_facets["f.{$field}.facet.range.start"] = $start;
-          }
-          if ($end) {
-            $params_date_facets["f.{$field}.facet.range.end"] = $end;
-          }
-          if ($gap) {
-            $params_date_facets["f.{$field}.facet.range.gap"] = $gap;
-          }
+        if ($end) {
+          $params_date_facets["f.{$field}.facet.{$facet_type}.end"] = $end;
+        }
+        if ($gap) {
+          $params_date_facets["f.{$field}.facet.{$facet_type}.gap"] = $gap;
         }
         // When the range slider is enabled we always want to return empty
         // values.
@@ -290,6 +255,10 @@ class IslandoraSolrQueryProcessor {
         $pos = array_search($field, $params_array['facet.field']);
         unset($params_array['facet.field'][$pos]);
       }
+      // Default settings.
+      $params_date_facets["facet.{$facet_type}.start"] = 'NOW/YEAR-20YEARS';
+      $params_date_facets["facet.{$facet_type}.end"] = 'NOW';
+      $params_date_facets["facet.{$facet_type}.gap"] = '+1YEAR';
 
       $params_array = array_merge($params_array, $params_date_facets);
     }
@@ -389,9 +358,9 @@ class IslandoraSolrQueryProcessor {
   public function executeQuery($alter_results = TRUE, $use_post = FALSE) {
     // Init Apache_Solr_Service object.
     $path_parts = parse_url(variable_get('islandora_solr_url', 'localhost:8080/solr'));
-    $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
-    $solr->setCreateDocuments(0);
+    $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/', FALSE , $path_parts['scheme']);
 
+    $solr->setCreateDocuments(0);
     // Query is executed.
     try {
       $solr_query = ($this->internalSolrQuery) ? $this->internalSolrQuery : $this->solrQuery;

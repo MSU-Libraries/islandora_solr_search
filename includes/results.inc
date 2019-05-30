@@ -533,7 +533,7 @@ class IslandoraSolrResults {
       $filter_split[1] = trim($filter_split[1], "\"");
       $solr_field = ltrim($filter_split[0], '-');
       // If value is date.
-      if (isset($islandora_solr_query->solrParams['facet.date']) && in_array($solr_field, $islandora_solr_query->solrParams['facet.date'])) {
+      if (isset($islandora_solr_query->solrParams['facet.range']) && in_array($solr_field, $islandora_solr_query->solrParams['facet.range'])) {
         // Check date format setting.
         foreach ($this->rangeFacets as $value) {
           if ($value['solr_field'] == $solr_field && isset($value['solr_field_settings']['date_facet_format']) && !empty($value['solr_field_settings']['date_facet_format'])) {
@@ -785,10 +785,10 @@ class IslandoraSolrFacets {
     if (array_key_exists($facet_field, self::$facet_fields)) {
       $this->facet_type = 'facet_fields';
     }
-    if (array_key_exists($facet_field, self::$facet_dates)) {
+    if (self::$facet_dates != null && array_key_exists($facet_field, self::$facet_dates)) {
       $this->facet_type = 'facet_dates';
     }
-    if (array_key_exists($facet_field, self::$facet_ranges)) {
+    if (self::$facet_ranges != null && array_key_exists($facet_field, self::$facet_ranges)) {
       $this->facet_type = 'facet_ranges';
       $this->date_range = islandora_solr_is_date_field($facet_field);
     }
@@ -886,10 +886,10 @@ class IslandoraSolrFacets {
   /**
    * Process facet ranges.
    *
-   * Not in place yet.
+   * Currently handled the same way as Date facets
    */
   public function processFacetRanges() {
-
+    $this->processFacetDates();
   }
 
   /**
@@ -941,6 +941,8 @@ class IslandoraSolrFacets {
       unset($results['counts']);
     }
     $date_results = array();
+    $end = $results['end'];
+
     // Render date facet fields.
     foreach ($results as $bucket => $count) {
       // Don't include gap, end, etc that comes with range results.
@@ -954,7 +956,7 @@ class IslandoraSolrFacets {
       $field_keys = array_keys($results);
       $field_key = array_search($bucket, $field_keys);
       $field_key++;
-      $bucket_next = (isset($field_keys[$field_key]) && !in_array($field_keys[$field_key], self::$exclude_range_values) ? $field_keys[$field_key] : $results['end']);
+      $bucket_next = (array_key_exists($field_key,$field_keys) && !in_array($field_keys[$field_key], self::$exclude_range_values)) ? $field_keys[$field_key] : $end;
       // Set date range filter for facet URL.
       $item['filter'] = $facet_field . ':[' . $bucket . ' TO ' . $bucket_next . ']';
       // Set formatted value for facet link.

@@ -15,7 +15,6 @@ function islandora_solr_admin_index_settings($form, &$form_state) {
       drupal_get_path('module', 'islandora_solr') . '/css/islandora_solr.admin.css',
     ),
   );
-
   $solr_url = !empty($form_state['values']['islandora_solr_url']) ?
     $form_state['values']['islandora_solr_url'] :
     variable_get('islandora_solr_url', 'localhost:8080/solr');
@@ -28,29 +27,23 @@ function islandora_solr_admin_index_settings($form, &$form_state) {
 
     // Check for the PHP Solr lib class.
     if (!class_exists('Apache_Solr_Service')) {
-      $message = t('This module requires the <a href="!url">Apache Solr PHP Client</a>. Please install the client in the root directory of this module before continuing.', array('!url' => 'http://code.google.com/p/solr-php-client'));
+      $message = t('This module requires the <a href="!url">Apache Solr PHP Client</a>. Please install the code in the root directory of this module as the directory \'SolrPhpClient\' before continuing.', array('!url' => 'https://github.com/PTCInc/solr-php-client'));
       drupal_set_message(check_plain($message));
       return;
     }
 
     // Get request handler.
     $handler = !empty($form_state['values']['islandora_solr_request_handler']) ? $form_state['values']['islandora_solr_request_handler'] : variable_get('islandora_solr_request_handler', FALSE);
-
-    if (strpos($solr_url, 'https://') !== FALSE && strpos($solr_url, 'https://') == 0) {
-      $confirmation_message = format_string('<img src="@image_url"/>!message', array(
-        '@image_url' => file_create_url('misc/watchdog-error.png'),
-        '!message' => t('Islandora does not support SSL connections to Solr.'),
-      ));
-      $solr_avail = FALSE;
-    }
-    elseif (preg_match('/^([^\/]+):/', $solr_url) === 0) {
-      form_set_error('islandora_solr_url', t('Port number required in Solr URL.'));
-      $solr_avail = FALSE;
-    }
-    else {
+    $build_vaild_solr_url_array = islandora_solr_build_valid_url($solr_url);
+    $valid_solr_url = $build_vaild_solr_url_array['valid_solr_url'];
+    if ($valid_solr_url) {
+      $solr_url = $build_vaild_solr_url_array['solr_url'];
       // Check if Solr is available.
       $solr_avail = islandora_solr_ping($solr_url);
-
+      if(!empty($form_state['values']['islandora_solr_url'])){
+        unset($form_state['values']['islandora_solr_url']);
+      }
+      $form_state['values']['islandora_solr_url'] = $solr_url;
       $dismax_allowed = FALSE;
       // If solr is available, get the request handlers.
       if ($solr_avail) {
@@ -97,7 +90,7 @@ function islandora_solr_admin_index_settings($form, &$form_state) {
     '#title' => t('Solr URL'),
     '#size' => 80,
     '#weight' => -1,
-    '#description' => t('The URL of the Solr installation. Defaults to localhost:8080/solr.  Port number (e.g. ":8080") is required.'),
+    '#description' => t('The URL of the Solr installation. Defaults to localhost:8080/solr. Specifying port number (e.g. ":8080") is recommended.'),
     '#default_value' => $solr_url,
     '#required' => TRUE,
     '#ajax' => array(
@@ -108,7 +101,6 @@ function islandora_solr_admin_index_settings($form, &$form_state) {
       'progress' => array('type' => 'throbber'),
     ),
   );
-
   // Hidden submit button.
   $form['solr_ajax_wrapper']['refresh_page'] = array(
     '#type' => 'submit',
@@ -203,10 +195,12 @@ function _islandora_solr_admin_index_settings_submit($form, &$form_state) {
   }
   // Get operation.
   $op = isset($form_state['triggering_element']['#id']) ? $form_state['triggering_element']['#id'] : '';
-
   switch ($op) {
     case 'edit-submit':
-      variable_set('islandora_solr_url', $form_state['values']['islandora_solr_url']);
+      $build_vaild_solr_url_array = islandora_solr_build_valid_url($form_state['values']['islandora_solr_url']);
+      $valid_solr_url = $build_vaild_solr_url_array['valid_solr_url'];
+      $solr_url = ($valid_solr_url)?$build_vaild_solr_url_array['solr_url']:'';
+      variable_set('islandora_solr_url', $solr_url);
       variable_set('islandora_solr_request_handler', $form_state['values']['islandora_solr_request_handler']);
       variable_set('islandora_solr_force_update_index_after_object_purge', $form_state['values']['islandora_solr_force_update_index_after_object_purge']);
       variable_set('islandora_solr_technical_difficulties_message', $form_state['values']['islandora_solr_technical_difficulties_message']);
@@ -227,6 +221,77 @@ function _islandora_solr_admin_index_settings_submit($form, &$form_state) {
   islandora_solr_check_dismax(TRUE);
 }
 
+/**
+ * Function to build a vaild sor url.
+ *
+ * @param string $solr_url
+ *   user entered solr url
+ *
+ * @return array
+ *   The vaild solr url array.
+ */
+
+function islandora_solr_build_valid_url($solr_url){
+    $valid_solr_url = FALSE;
+    // check and append the protocol if it's not entered
+    if (strpos($solr_url, 'http://') === FALSE && strpos($solr_url, 'https://') === FALSE) {
+        $solr_url = 'http://' . $solr_url;
+    }
+    // check if port # is in the url
+    if (preg_match('/:[0-9]+/', $solr_url) === 0) {
+      $service = explode("://", $solr_url, 2);
+      $protocol = $service[0];
+      // check if the protocol is https
+      if ($protocol === "https") {
+        $port = 443;
+      }
+      // set the prtocol to http
+      else {
+        $protocol = "http";
+        $port = 80;
+      }
+      // if the protocol is valid in the url
+      if (isset($service[1])) {
+        $url_parts = preg_split('|/|', $service[1], -1, PREG_SPLIT_NO_EMPTY);
+        $base_solr_url = array_shift($url_parts);
+        $solr_url = $protocol . "://" . $base_solr_url . ":" . $port . '/';
+        if (!empty($url_parts)) {
+            foreach($url_parts as $part) {
+                $solr_url .= $part . '/';
+            }
+        }
+        $valid_solr_url = TRUE;
+      }
+      //if an invalid protocol is entered or if no protocol is entered
+      else if (!empty($service[0])) {
+        if(strpos($service[0] , '/') === FALSE) {
+            form_set_error('islandora_solr_url', t('Please enter a valid url.'));
+            $solr_avail = FALSE;
+
+        }
+        else {
+            $url_parts = preg_split('|/|', $service[0], -1, PREG_SPLIT_NO_EMPTY);
+            $base_solr_url = array_shift($url_parts);
+            $solr_url = $protocol . "://" . $base_solr_url . ":" . $port . '/';
+            if(!empty($url_parts)) {
+                foreach($url_parts as $part) {
+                    $solr_url .= $part . '/';
+                }
+            }
+            $valid_solr_url = TRUE;
+
+        }
+      }
+      else {
+        form_set_error('islandora_solr_url', t('Please enter a valid url.'));
+        $solr_avail = FALSE;
+      }
+    }
+    else {
+        $valid_solr_url = TRUE;
+    }
+    return array("valid_solr_url"=>$valid_solr_url, "solr_url" => $solr_url);
+}
 /**
  * Function to return administration setting form.
  *
@@ -2333,16 +2398,10 @@ function islandora_solr_get_solrconfig_xml($solr_url) {
   if (!array_key_exists($solr_url, $xml) || $xml[$solr_url] === NULL) {
     $url = $solr_url . '/admin/file/?file=solrconfig.xml';
 
-    // XXX: The Solr URL should be made to contain the URI scheme in the actual
-    // configuration.
-    if (strpos($solr_url, 'http') !== 0) {
-      $url = "http://$url";
-    }
-
     $req = drupal_http_request($url);
     if ($req->code / 100 === 2) {
       $xml[$solr_url] = simplexml_load_string($req->data);
-      islandora_solr_resolve_xincludes($xml[$solr_url], (strpos($solr_url, 'http') === 0 ? '' : 'http://') . $solr_url);
+      islandora_solr_resolve_xincludes($xml[$solr_url], $solr_url);
     }
     else {
       $xml[$solr_url] = NULL;
